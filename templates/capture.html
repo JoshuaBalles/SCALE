@@ -1,5 +1,15 @@
 <!-- templates/capture.html (do not change or remove this comment) -->
 {% extends "base.html" %} {% block title %}Capture{% endblock %} {% block content %}
-<h1>Capture Page</h1>
-<p>This is the capture page.</p>
+<div class="container" style="display: flex; justify-content: center; align-items: center; flex-direction: column; text-align: center">
+	<h1>Capture Page</h1>
+	<p>This is the capture page.</p>
+	<div>
+		<img src="{{ url_for('video_feed') }}" style="width: 1280px; height: 720px; border: 1px solid #ddd" />
+	</div>
+</div>
+<script>
+	window.addEventListener('beforeunload', function() {
+	    fetch('{{ url_for('stop_camera') }}', {method: 'POST'});
+	});
+</script>
 {% endblock %}
