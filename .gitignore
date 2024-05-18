@@ -310,6 +310,17 @@ htmlcov/
 .tox/
 docs/_build/
 
+# Ignore all files in the these directories
+annotations/*
+cropped/*
+masked/*
+
+# Except these .txt files
+!annotations/annotations_here.txt
+!cropped/cropped_images_here.txt
+!masked/masked_images_here.txt
+
+
 # Temporary and testing files
 temp/
 test.py
