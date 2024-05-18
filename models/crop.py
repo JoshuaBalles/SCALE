@@ -35,7 +35,7 @@ def crop_objects(image_path):
         class_ids = results[0].boxes.cls.tolist()
 
         # Get the current datetime
-        current_datetime = datetime.now().strftime("%B %d, %Y, %H-%M-%S")
+        current_datetime = datetime.now().strftime("%B %d, %Y, %H:%M:%S")
 
         # Iterate through the bounding boxes
         for i, (box, class_id) in enumerate(zip(boxes, class_ids)):
