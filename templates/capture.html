@@ -1,15 +1,46 @@
 <!-- templates/capture.html (do not change or remove this comment) -->
 {% extends "base.html" %} {% block title %}Capture{% endblock %} {% block content %}
 <div class="container" style="display: flex; justify-content: center; align-items: center; flex-direction: column; text-align: center">
-	<h1>Capture Page</h1>
-	<p>This is the capture page.</p>
 	<div>
-		<img src="{{ url_for('video_feed') }}" style="width: 1280px; height: 720px; border: 1px solid #ddd" />
+		<img
+			src="{{ url_for('video_feed') }}"
+			style="width: 1280px; height: 720px; border: 1px solid #ddd; transform: scale(0.5); transform-origin: center center" />
+	</div>
+	<div style="margin-top: 20px">
+		<button id="capture-button" class="btn btn-primary" onclick="captureImage()">Capture</button>
 	</div>
 </div>
 <script>
 	window.addEventListener('beforeunload', function() {
 	    fetch('{{ url_for('stop_camera') }}', {method: 'POST'});
 	});
+
+	function captureImage() {
+	    var captureButton = document.getElementById('capture-button');
+	    captureButton.disabled = true;
+	    captureButton.classList.remove('btn-primary');
+	    captureButton.classList.add('btn-danger');
+	    captureButton.innerText = 'Processing...';
+	    fetch('{{ url_for('capture_image') }}', {method: 'POST'})
+	        .then(response => response.json())
+	        .then(data => {
+	            if (data.status === 'success') {
+	                window.location.href = '{{ url_for('results') }}';
+	            } else {
+	                alert('Error: ' + data.message);
+	                captureButton.disabled = false;
+	                captureButton.classList.remove('btn-danger');
+	                captureButton.classList.add('btn-primary');
+	                captureButton.innerText = 'Capture';
+	            }
+	        })
+	        .catch(error => {
+	            console.error('Error:', error);
+	            captureButton.disabled = false;
+	            captureButton.classList.remove('btn-danger');
+	            captureButton.classList.add('btn-primary');
+	            captureButton.innerText = 'Capture';
+	        });
+	}
 </script>
 {% endblock %}
