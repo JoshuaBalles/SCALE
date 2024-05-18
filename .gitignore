@@ -319,3 +319,4 @@ masked/*
 !annotations/annotations_here.txt
 !cropped/cropped_images_here.txt
 !masked/masked_images_here.txt
+!temp/capture.jpg
