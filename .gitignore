@@ -309,4 +309,7 @@ dist/
 htmlcov/
 .tox/
 docs/_build/
+
+# Temporary and testing files
 temp/
+test.py
