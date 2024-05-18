@@ -55,7 +55,7 @@ def crop_objects(image_path):
             # Get the class name from the class ID
             class_name = class_names.get(int(class_id), "Unknown")
             # Generate the filename with class name and formatted date
-            filename = f"{class_name} {current_datetime}.jpg"
+            filename = f"{class_name} {current_datetime} {i}.jpg"
             # Define the path to the cropped folder
             cropped_folder = "cropped"
             # Ensure the cropped folder exists
