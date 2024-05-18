@@ -115,5 +115,17 @@ def serve_cropped_image(filename):
     return send_from_directory("cropped", filename)
 
 
+@app.route("/estimation")
+def estimation():
+    filename = request.args.get("filename")
+    if not filename:
+        return redirect(url_for("results"))
+    basename = filename.rsplit(".", 1)[0]
+    display_name = basename.rsplit(" ", 1)[0]
+    return render_template(
+        "estimation.html", filename=filename, display_name=display_name
+    )
+
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)

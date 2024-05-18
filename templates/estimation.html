@@ -1,0 +1,11 @@
+<!-- templates/prediction.html (do not change or remove this comment) -->
+{% extends "base.html" %} {% block title %} Estimation {% endblock %} {% block content %}
+<div class="container" style="margin-top: 2rem">
+	<div class="card">
+		<img src="{{ url_for('serve_cropped_image', filename=filename) }}" class="card-img-top" alt="{{ filename }}" />
+		<div class="card-body">
+			<p style="font-size: 1rem; text-align: center">{{ display_name }}</p>
+		</div>
+	</div>
+</div>
+{% endblock %}
