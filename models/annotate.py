@@ -91,7 +91,7 @@ class Annotator:
         masked_image = self.apply_mask()
 
         # Plot and save the masked image
-        output_file = os.path.join("masked", f"masked-{self.file_name}.jpg")
+        output_file = os.path.join("masked", f"Masked {self.file_name}.jpg")
         self.plot_and_save_image(masked_image, output_file)
         return masked_image
 
