@@ -1,8 +1,18 @@
 # app.py (do not change or remove this comment)
-from flask import Flask, render_template, Response, request, jsonify, redirect, url_for
+from flask import (
+    Flask,
+    render_template,
+    Response,
+    request,
+    jsonify,
+    redirect,
+    url_for,
+    send_from_directory,
+)
 import cv2
 import logging
 import os
+import glob
 from models import crop
 
 app = Flask(__name__)
@@ -91,8 +101,18 @@ def capture_image():
 
 @app.route("/results")
 def results():
-    logging.debug("Results page loaded")
-    return render_template("results.html")
+    cropped_folder = "cropped"
+    if not os.path.exists(cropped_folder):
+        os.makedirs(cropped_folder)
+    image_files = glob.glob(os.path.join(cropped_folder, "*.jpg"))
+    image_files = [os.path.basename(f) for f in image_files]  # Get base names of files
+    logging.debug("Results page loaded with %d images", len(image_files))
+    return render_template("results.html", image_files=image_files)
+
+
+@app.route("/cropped/<filename>")
+def serve_cropped_image(filename):
+    return send_from_directory("cropped", filename)
 
 
 if __name__ == "__main__":
