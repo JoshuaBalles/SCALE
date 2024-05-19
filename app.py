@@ -117,6 +117,11 @@ def serve_cropped_image(filename):
     return send_from_directory("cropped", filename)
 
 
+@app.route("/masked/<filename>")
+def serve_masked_image(filename):
+    return send_from_directory("masked", filename)
+
+
 @app.route("/estimation")
 def estimation():
     filename = request.args.get("filename")
@@ -166,6 +171,37 @@ def estimation():
     return render_template(
         "estimation.html", filename=filename, display_name=display_name
     )
+
+
+@app.route("/delete_image", methods=["POST"])
+def delete_image():
+    filename = request.json.get("filename")
+    if not filename:
+        return jsonify({"status": "error", "message": "Filename not provided"}), 400
+
+    try:
+        annotation_file = os.path.join(
+            "annotations", f"{filename.rsplit('.', 1)[0]}.txt"
+        )
+        cropped_image = os.path.join("cropped", filename)
+        masked_image = os.path.join("masked", f"Masked {filename}")
+
+        if os.path.exists(annotation_file):
+            os.remove(annotation_file)
+            logging.debug(f"Deleted annotation file: {annotation_file}")
+
+        if os.path.exists(cropped_image):
+            os.remove(cropped_image)
+            logging.debug(f"Deleted cropped image: {cropped_image}")
+
+        if os.path.exists(masked_image):
+            os.remove(masked_image)
+            logging.debug(f"Deleted masked image: {masked_image}")
+
+        return jsonify({"status": "success", "message": "Files deleted successfully"})
+    except Exception as e:
+        logging.error(f"Error deleting files: {e}")
+        return jsonify({"status": "error", "message": "Error deleting files"}), 500
 
 
 if __name__ == "__main__":
