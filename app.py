@@ -13,7 +13,9 @@ import cv2
 import logging
 import os
 import glob
-from models import crop
+import pandas as pd
+from joblib import load
+from models import crop, annotate
 
 app = Flask(__name__)
 
@@ -120,8 +122,47 @@ def estimation():
     filename = request.args.get("filename")
     if not filename:
         return redirect(url_for("results"))
-    basename = filename.rsplit(".", 1)[0]
-    display_name = basename.rsplit(" ", 1)[0]
+
+    image_path = os.path.join("cropped", filename)
+    annotator = annotate.Annotator(image_path)
+    annotator.annotate_and_mask()
+    area = annotator.area()
+    average_length = annotator.length()
+    average_width = annotator.width()
+    perimeter = annotator.perimeter()
+
+    if "Chicken" in filename:
+        model_scaler = load(r"models/regression_model_chicken.joblib")
+        new_data = pd.DataFrame(
+            {
+                "area": [area],
+                "length": [average_length],
+                "width": [average_width],
+                "perimeter": [perimeter],
+            },
+            index=[0],
+        )
+        estimated_weight = model_scaler.predict(new_data)
+        weight_unit = "grams"
+    elif "Pig" in filename:
+        model_scaler = load(r"models/regression_model_pig.joblib")
+        new_data = pd.DataFrame(
+            {
+                "area": [area],
+                "length": [average_length],
+                "width": [average_width],
+                "perimeter": [perimeter],
+            },
+            index=[0],
+        )
+        estimated_weight = model_scaler.predict(new_data)
+        weight_unit = "kilograms"
+    else:
+        return redirect(url_for("results"))
+
+    display_name = (
+        f"{filename.rsplit('.', 1)[0]} {estimated_weight[0]:.2f} {weight_unit}"
+    )
     return render_template(
         "estimation.html", filename=filename, display_name=display_name
     )
