@@ -14,8 +14,8 @@ class Annotator:
         self.base_file, _ = os.path.splitext(image_file)
         self.file_name = os.path.basename(self.base_file)
         self.output_dir = "annotations"
-        self.det_model = r"models\object_detection_model.pt"
-        self.sam_model = r"models\mobile_sam.pt"
+        self.det_model = r"models/object_detection_model.pt"
+        self.sam_model = r"models/mobile_sam.pt"
         self.image = self.load_image()
         self.original_shape = self.image.shape[:2]
         self.mask = None
