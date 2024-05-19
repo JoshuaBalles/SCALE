@@ -22,6 +22,7 @@ app = Flask(__name__)
 camera = None
 temp_dir = "temp"
 capture_path = os.path.join(temp_dir, "capture.jpg")
+test_image_path = None  # Add this line to specify a test image path
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -29,7 +30,13 @@ logging.basicConfig(level=logging.DEBUG)
 def gen_frames():
     global camera
     while True:
-        if camera and camera.isOpened():
+        if test_image_path:  # Check if test_image_path is provided
+            frame = cv2.imread(test_image_path)
+            ret, buffer = cv2.imencode(".jpg", frame)
+            frame = buffer.tobytes()
+            yield (b"--frame\r\n" b"Content-Type: image/jpeg\r\n\r\n" + frame + b"\r\n")
+            break
+        elif camera and camera.isOpened():
             success, frame = camera.read()  # read the camera frame
             if not success:
                 break
@@ -50,25 +57,27 @@ def home():
 
 @app.route("/capture")
 def capture():
-    global camera
-    if not camera:
-        camera = cv2.VideoCapture(0)
-        camera.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-        camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
-        camera.set(cv2.CAP_PROP_FPS, 30)
-    logging.debug("Capture page loaded and camera started")
+    global camera, test_image_path
+    if not test_image_path:  # Only start the camera if no test image path is provided
+        if not camera:
+            camera = cv2.VideoCapture(0)
+            camera.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+            camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+            camera.set(cv2.CAP_PROP_FPS, 30)
+        logging.debug("Capture page loaded and camera started")
     return render_template("capture.html")
 
 
 @app.route("/video_feed")
 def video_feed():
-    global camera
-    if not camera or not camera.isOpened():
-        camera = cv2.VideoCapture(0)
-        camera.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-        camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
-        camera.set(cv2.CAP_PROP_FPS, 30)
-    logging.debug("Video feed requested")
+    global camera, test_image_path
+    if not test_image_path:  # Only start the camera if no test image path is provided
+        if not camera or not camera.isOpened():
+            camera = cv2.VideoCapture(0)
+            camera.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+            camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+            camera.set(cv2.CAP_PROP_FPS, 30)
+        logging.debug("Video feed requested")
     return Response(gen_frames(), mimetype="multipart/x-mixed-replace; boundary=frame")
 
 
@@ -86,11 +95,20 @@ def stop_camera():
 
 @app.route("/capture_image", methods=["POST"])
 def capture_image():
-    global camera, capture_path
-    if not camera or not camera.isOpened():
-        return jsonify({"status": "error", "message": "Camera not started"}), 400
-    success, frame = camera.read()
-    if success:
+    global camera, capture_path, test_image_path
+    if test_image_path:  # Use the test image path if provided
+        frame = cv2.imread(test_image_path)
+    else:
+        if not camera or not camera.isOpened():
+            return jsonify({"status": "error", "message": "Camera not started"}), 400
+        success, frame = camera.read()
+        if not success:
+            return (
+                jsonify({"status": "error", "message": "Failed to capture image"}),
+                500,
+            )
+
+    if frame is not None:
         if not os.path.exists(temp_dir):
             os.makedirs(temp_dir)
         cv2.imwrite(capture_path, frame)
@@ -205,4 +223,5 @@ def delete_image():
 
 
 if __name__ == "__main__":
+    test_image_path = ""  # Specify your test image path here
     app.run(host="0.0.0.0", port=5000, debug=True)
