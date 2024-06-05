@@ -10,6 +10,7 @@ from picamera2 import Picamera2
 from libcamera import Transform
 from PIL import Image
 import piexif
+from models import crop
 
 app = Flask(__name__)
 
@@ -61,7 +62,8 @@ def release_camera(picam2):
         logging.error(f"Error releasing camera: {e}")
 
 
-# Function to capture an image and save it with metadata
+# Function to capture an image and save it with metadata,
+# then perform object detection on the saved image
 def capture_image():
     # Get current timestamp
     now = datetime.now()
@@ -103,6 +105,9 @@ def capture_image():
     # Save the image with EXIF metadata
     image.save(image_path, "jpeg", exif=exif_bytes)
     logging.info(f"Saved image at {image_path} with metadata: Captured={timestamp}")
+    
+    # Perform object detection on the saved image
+    crop.crop_objects("capture.jpg")
 
     # Release the camera
     release_camera(picam2)
