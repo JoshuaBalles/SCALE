@@ -310,13 +310,8 @@ htmlcov/
 .tox/
 docs/_build/
 
-# Ignore all files in the these directories
-annotations/*
-cropped/*
-masked/*
+# Ignore all .txt files
+*.txt
 
-# Except these .txt files
-!annotations/annotations_here.txt
-!cropped/cropped_images_here.txt
-!masked/masked_images_here.txt
-!temp/capture.jpg
+# Ignore all .jpg files
+*.jpg
