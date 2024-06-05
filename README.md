@@ -1,2 +1,2 @@
 # SCALE
-Smart Computation Algorithm for Livestock Estimation
+Smart Computation Algorithm for Livestock Weight Estimation
