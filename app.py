@@ -22,19 +22,33 @@ VIDEO_SERVER_SCRIPT = os.path.join(os.getcwd(), "camera_video_server.py")
 # Use the Python interpreter from the current environment
 python_interpreter = sys.executable
 
+# Global variable to hold the video server process
+video_server_process = None
+
 
 # Function to start the video server
 def start_video_server():
-    logging.info("Starting video server...")
-    return subprocess.Popen([python_interpreter, VIDEO_SERVER_SCRIPT])
+    global video_server_process
+    if video_server_process is None:
+        logging.info("Starting video server...")
+        video_server_process = subprocess.Popen(
+            [python_interpreter, VIDEO_SERVER_SCRIPT]
+        )
+    else:
+        logging.info("Video server already running.")
 
 
 # Function to stop the video server
-def stop_video_server(process):
-    logging.info("Stopping video server...")
-    process.terminate()  # Send termination signal to the process
-    process.wait()  # Wait for the process to terminate
-    logging.info("Video server stopped.")
+def stop_video_server():
+    global video_server_process
+    if video_server_process is not None:
+        logging.info("Stopping video server...")
+        video_server_process.terminate()  # Send termination signal to the process
+        video_server_process.wait()  # Wait for the process to terminate
+        logging.info("Video server stopped.")
+        video_server_process = None
+    else:
+        logging.info("No video server process to stop.")
 
 
 # Function to release the camera resources
@@ -94,8 +108,17 @@ def capture_image():
     release_camera(picam2)
 
 
-# Start the video server when the app starts
-video_server_process = start_video_server()
+@app.before_request
+def before_request():
+    if request.endpoint == "capture":
+        start_video_server()
+
+
+@app.after_request
+def after_request(response):
+    if request.endpoint != "capture":
+        stop_video_server()
+    return response
 
 
 @app.route("/")
@@ -106,35 +129,30 @@ def index():
 
 @app.route("/capture", methods=["GET", "POST"])
 def capture():
-    # Capture an image by stopping the video server, running the image capture script, and restarting the video server.
-    global video_server_process
-
     if request.method == "POST":
-        # Stop the video server
-        stop_video_server(video_server_process)
+        # Stop the video server before capturing the image
+        stop_video_server()
 
         # Capture image
         logging.info("Capturing image...")
         capture_image()
 
         # Restart the video server
-        video_server_process = start_video_server()
+        start_video_server()
 
         logging.info("Capture complete and video server restarted.")
-        return redirect(url_for("index"))
+        return redirect(url_for("capture"))
 
     return render_template("capture.html")
 
 
 @app.route("/results")
 def results():
-    # Render the results page.
     return render_template("results.html")
 
 
 @app.route("/track")
 def track():
-    # Render the track page.
     return render_template("track.html")
 
 
