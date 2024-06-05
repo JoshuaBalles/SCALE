@@ -310,6 +310,9 @@ htmlcov/
 .tox/
 docs/_build/
 
+# Ignore the z.py (a python script just for testing things)
+z.py
+
 # Ignore all .txt files
 *.txt
 
