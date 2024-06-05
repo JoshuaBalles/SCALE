@@ -11,18 +11,6 @@ from picamera2.encoders import JpegEncoder
 from picamera2.outputs import FileOutput
 from libcamera import Transform
 
-# HTML template for the streaming page
-PAGE = """\
-<html>
-<head>
-<title>picamera2 MJPEG stream</title>
-</head>
-<body>
-<img src="stream.mjpg" />
-</body>
-</html>
-"""
-
 # Initialize logging
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
@@ -30,33 +18,26 @@ logging.basicConfig(
 
 
 class StreamingOutput(io.BufferedIOBase):
+    # Class to handle streaming output from the camera
+
     def __init__(self):
         self.frame = None
         self.condition = Condition()
         logging.info("Initialized StreamingOutput")
 
     def write(self, buf):
+        # Write a new frame to the buffer and notify all waiting threads
         with self.condition:
             self.frame = buf
             self.condition.notify_all()
-            logging.debug("New frame written to buffer")
 
 
 class StreamingHandler(server.BaseHTTPRequestHandler):
+    # Class to handle HTTP requests for streaming
+
     def do_GET(self):
-        if self.path == "/":
-            self.send_response(301)
-            self.send_header("Location", "/index.html")
-            self.end_headers()
-        elif self.path == "/index.html":
-            content = PAGE.encode("utf-8")
-            self.send_response(200)
-            self.send_header("Content-Type", "text/html")
-            self.send_header("Content-Length", len(content))
-            self.end_headers()
-            self.wfile.write(content)
-            logging.info("Served index.html")
-        elif self.path == "/stream.mjpg":
+        # Serve the MJPEG stream to the client
+        if self.path == "/stream.mjpg":
             self.send_response(200)
             self.send_header("Age", 0)
             self.send_header("Cache-Control", "no-cache, private")
@@ -71,6 +52,7 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
                     with output.condition:
                         output.condition.wait()
                         frame = output.frame
+                    # Directly write frame to output stream without additional copying
                     self.wfile.write(b"--FRAME\r\n")
                     self.send_header("Content-Type", "image/jpeg")
                     self.send_header("Content-Length", len(frame))
@@ -78,21 +60,23 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
                     self.wfile.write(frame)
                     self.wfile.write(b"\r\n")
             except Exception as e:
-                logging.warning(
+                logging.info(
                     "Removed streaming client %s: %s", self.client_address, str(e)
                 )
         else:
             self.send_error(404)
             self.end_headers()
-            logging.error("File not found: %s", self.path)
+            logging.info("File not found: %s", self.path)
 
 
 class StreamingServer(socketserver.ThreadingMixIn, server.HTTPServer):
+    # HTTP server with threading mixin for handling requests in separate threads
     allow_reuse_address = True
     daemon_threads = True
 
 
 def get_ip_address():
+    # Get the IP address of the local machine
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
         s.connect(("8.8.8.8", 1))
@@ -115,16 +99,19 @@ picam2.configure(
 picam2.set_controls({"FrameRate": 24.0})
 logging.info("Camera configured and controls set")
 
+# Set up the streaming output
 output = StreamingOutput()
 picam2.start_recording(JpegEncoder(), FileOutput(output))
 logging.info("Started recording")
 
 try:
+    # Start the streaming server
     address = ("", 8000)
     server = StreamingServer(address, StreamingHandler)
     ip_address = get_ip_address()
-    logging.info("Streaming at http://%s:8000", ip_address)
+    logging.info("Streaming at http://%s:8000/stream.mjpg", ip_address)
     server.serve_forever()
 finally:
+    # Stop recording when the server is stopped
     picam2.stop_recording()
     logging.info("Stopped recording")

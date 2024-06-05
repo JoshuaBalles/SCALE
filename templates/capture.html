@@ -1,21 +1,11 @@
 <!-- templates/capture.html (do not change or remove this comment) -->
 
-<!DOCTYPE html>
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<title>Camera Server</title>
-	</head>
-	<body style="display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0">
-		<div style="width: 60%; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; gap: 1rem">
-			<h1 style="margin: 0">Camera Server</h1>
-			<img src="http://192.168.100.141:8000/stream.mjpg" alt="Camera Stream" style="width: 80%; height: auto; margin: 0" />
-			<form
-				action="{{ url_for('capture') }}"
-				method="post"
-				style="width: 100%; display: flex; flex-direction: column; align-items: center; gap: 1rem; margin: 0">
-				<button type="submit" style="padding: 1rem">Capture Image</button>
-			</form>
-		</div>
-	</body>
-</html>
+{% extends "base.html" %} {% block title %}Capture{% endblock %} {% block content %}
+<div style="width: 60%; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; gap: 1rem">
+	<h1 style="margin: 0">Camera Server</h1>
+	<img src="http://192.168.100.141:8000/stream.mjpg" alt="Camera Stream" style="width: 80%; height: auto; margin: 0" />
+	<form action="{{ url_for('capture') }}" method="post" style="width: 100%; display: flex; flex-direction: column; align-items: center; gap: 1rem; margin: 0">
+		<button type="submit" style="padding: 1rem">Capture</button>
+	</form>
+</div>
+{% endblock %}
