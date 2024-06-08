@@ -1,11 +1,11 @@
 <!-- templates/capture.html (do not change or remove this comment) -->
 
 {% extends "base.html" %} {% block title %}Capture{% endblock %} {% block content %}
-<div style="width: 60%; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; gap: 1rem">
-	<h1 style="margin: 0">Camera Server</h1>
-	<img src="http://192.168.100.141:8000/stream.mjpg" alt="Camera Stream" style="width: 80%; height: auto; margin: 0" />
+<div style="width: 100%; height: auto; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; gap: 1rem">
+	<h1 style="margin: 0">Capture Page</h1>
+	<img src="http://192.168.100.141:8000/stream.mjpg" alt="Camera Stream" style="width: 75%; height: auto; margin: 0" />
 	<form action="{{ url_for('capture') }}" method="post" style="width: 100%; display: flex; flex-direction: column; align-items: center; gap: 1rem; margin: 0">
-		<button type="submit" style="padding: 1rem">Capture</button>
+		<button type="submit" style="padding: 0.125rem">Capture</button>
 	</form>
 </div>
 {% endblock %}

@@ -1,15 +1,17 @@
 # app.py (do not change or remove this comment)
 
-from flask import Flask, render_template, redirect, url_for, request
-import subprocess
-import os
-import sys
 import logging
+import os
+import subprocess
+import sys
 from datetime import datetime
-from picamera2 import Picamera2
-from libcamera import Transform
-from PIL import Image
+
 import piexif
+from flask import Flask, redirect, render_template, request, url_for
+from libcamera import Transform
+from picamera2 import Picamera2
+from PIL import Image
+
 from models import crop
 
 app = Flask(__name__)
@@ -105,7 +107,7 @@ def capture_image():
     # Save the image with EXIF metadata
     image.save(image_path, "jpeg", exif=exif_bytes)
     logging.info(f"Saved image at {image_path} with metadata: Captured={timestamp}")
-    
+
     # Perform object detection on the saved image
     crop.crop_objects("capture.jpg")
 
