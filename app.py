@@ -2,12 +2,20 @@
 
 import logging
 import os
+import re
 import subprocess
 import sys
 from datetime import datetime
 
 import piexif
-from flask import Flask, redirect, render_template, request, url_for
+from flask import (
+    Flask,
+    redirect,
+    render_template,
+    request,
+    url_for,
+    send_from_directory,
+)
 from libcamera import Transform
 from picamera2 import Picamera2
 from PIL import Image
@@ -27,6 +35,11 @@ python_interpreter = sys.executable
 
 # Global variable to hold the video server process
 video_server_process = None
+
+# Create cropped directory if it doesn't exist
+CROPPED_DIR = os.path.join(os.getcwd(), "cropped")
+if not os.path.exists(CROPPED_DIR):
+    os.makedirs(CROPPED_DIR)
 
 
 # Function to start the video server
@@ -148,19 +161,41 @@ def capture():
         start_video_server()
 
         logging.info("Capture complete and video server restarted.")
-        return redirect(url_for("capture"))
+        return redirect(url_for("results"))
 
     return render_template("capture.html")
 
 
 @app.route("/results")
 def results():
-    return render_template("results.html")
+    # Get all cropped images from the cropped/ directory
+    cropped_dir = os.path.join(os.getcwd(), "cropped")
+    images = [
+        {"filename": f, "basename": os.path.splitext(f)[0]}
+        for f in os.listdir(cropped_dir)
+        if f.endswith((".jpg", ".jpeg", ".png"))
+    ]
+
+    # Extract datetime from the basename and sort images by datetime in descending order
+    def extract_datetime(basename):
+        match = re.search(r"(\w+ \d{2}, \d{4}, \d{2}-\d{2}-\d{2} (AM|PM))", basename)
+        if match:
+            return datetime.strptime(match.group(1), "%B %d, %Y, %I-%M-%S %p")
+        return datetime.min
+
+    images.sort(key=lambda x: extract_datetime(x["basename"]), reverse=True)
+
+    return render_template("results.html", images=images)
 
 
 @app.route("/track")
 def track():
     return render_template("track.html")
+
+
+@app.route("/cropped/<filename>")
+def get_cropped_image(filename):
+    return send_from_directory(CROPPED_DIR, filename)
 
 
 if __name__ == "__main__":
