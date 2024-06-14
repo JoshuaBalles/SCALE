@@ -1,0 +1,13 @@
+<!-- templates/estimate.html (do not change or remove this comment) -->
+
+{% extends "base.html" %} {% block title %}Estimate{% endblock %} {% block content %}
+<div style="display: flex; justify-content: center; align-items: center; height: 100vh; flex-direction: column">
+	<img src="{{ url_for('get_cropped_image', filename=filename) }}" alt="{{ basename }}" style="width: 50vw; height: auto; border-radius: 0.5rem" />
+	<p style="margin-top: 1rem; font-size: 1.25rem">{{ basename }}</p>
+	<form action="{{ url_for('delete_image', basename=basename) }}" method="POST" style="margin-top: 1rem">
+		<button type="submit" style="padding: 0.5rem 1rem; background-color: #f44336; color: white; border: none; border-radius: 0.25rem; cursor: pointer">
+			Delete
+		</button>
+	</form>
+</div>
+{% endblock %}

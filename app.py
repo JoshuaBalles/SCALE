@@ -188,6 +188,47 @@ def results():
     return render_template("results.html", images=images)
 
 
+@app.route("/result/estimate/<basename>")
+def estimate(basename):
+    # Find the full filename in the cropped directory
+    cropped_dir = os.path.join(os.getcwd(), "cropped")
+    filename = None
+    for f in os.listdir(cropped_dir):
+        if os.path.splitext(f)[0] == basename:
+            filename = f
+            break
+
+    if not filename:
+        return "Image not found", 404
+
+    return render_template("estimate.html", basename=basename, filename=filename)
+
+
+@app.route("/delete/<basename>", methods=["POST"])
+def delete_image(basename):
+    # Find the full filename in the cropped directory
+    cropped_dir = os.path.join(os.getcwd(), "cropped")
+    filename = None
+    for f in os.listdir(cropped_dir):
+        if os.path.splitext(f)[0] == basename:
+            filename = f
+            break
+
+    if not filename:
+        return "Image not found", 404
+
+    # Delete the image file
+    file_path = os.path.join(cropped_dir, filename)
+    try:
+        os.remove(file_path)
+        logging.info(f"Deleted image: {file_path}")
+    except Exception as e:
+        logging.error(f"Error deleting image: {e}")
+        return f"Error deleting image: {e}", 500
+
+    return redirect(url_for("results"))
+
+
 @app.route("/track")
 def track():
     return render_template("track.html")
